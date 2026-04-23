@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS Countries(
   country_name VARCHAR(60) PRIMARY KEY,
   country_code VARCHAR(4),
-  has_program BOOLEAN NOT NULL,
+  has_program BOOLEAN,
   CONSTRAINT uc_countries_code UNIQUE(country_code)
 );
 
@@ -9,11 +9,13 @@ CREATE TABLE  IF NOT EXISTS Programs(
   program_name VARCHAR(200) PRIMARY KEY,
   country_name VARCHAR(60) NOT NULL,
   program_type VARCHAR(100),
+  program_abbreviation VARCHAR(10),
   date_established DATE,
   year_established YEAR,
   num_of_satellites INT,
   num_of_astronauts INT,
-  CONSTRAINT fk_programs_country FOREIGN KEY (country_name) REFERENCES Countries(country_name)
+  CONSTRAINT fk_programs_country FOREIGN KEY (country_name) REFERENCES Countries(country_name),
+  CONSTRAINT uc_programs_abb UNIQUE(program_abbreviation)
 );
 
 CREATE TABLE  IF NOT EXISTS Treaties(
