@@ -1,4 +1,4 @@
 #Ignore the envivornment file
 .env
 .vscode/
-node_modules/
+.env-prod
