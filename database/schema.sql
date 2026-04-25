@@ -30,7 +30,7 @@ CREATE TABLE  IF NOT EXISTS Satellites(
   satellite_id INT AUTO_INCREMENT PRIMARY KEY,
   serial_number VARCHAR(20),
   currently_in_orbit BOOLEAN,
-  year_made DATE,
+  year_made YEAR,
   CONSTRAINT uc_satellites_serial UNIQUE(serial_number)
 );
 
