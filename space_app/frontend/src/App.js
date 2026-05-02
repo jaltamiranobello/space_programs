@@ -27,7 +27,7 @@ export default function App() {
   // ---------------- FETCH COUNTRIES ----------------
   useEffect(() => {
     const loadCountries = async () => {
-      const res = await fetch("http://localhost:5000/api/countries");
+      const res = await fetch("http://localhost:5001/api/countries");
       const json = await res.json();
       setCountries(json || []);
     };
@@ -38,7 +38,7 @@ export default function App() {
   // ---------------- FETCH TABLE ----------------
   const fetchTable = async (table) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/${table}`);
+      const res = await fetch(`http://localhost:5001/api/${table}`);
       const json = await res.json();
 
       setData((prev) => ({
@@ -97,7 +97,7 @@ export default function App() {
 
   // ---------------- CSV ----------------
   const downloadCSV = (table) => {
-    window.open(`http://localhost:5000/api/${table}/export`, "_blank");
+    window.open(`http://localhost:5001/api/${table}/export`, "_blank");
   };
 
   // ---------------- UI ----------------
