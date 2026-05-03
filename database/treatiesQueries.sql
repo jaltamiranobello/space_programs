@@ -1,3 +1,4 @@
+
 -- Seeder data for Treaties
 INSERT INTO Treaties(treaty_title)
 VALUES
