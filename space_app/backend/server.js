@@ -203,7 +203,39 @@ app.post("/api/:table", async (req, res) => {
   }
 });
 
+app.post("/api/signatures", async (req, res) => {
+  const {
+    treaty_title,
+    country_name,
+    signed_date,
+    signed_year,
+    bound_date,
+    bound_year
+  } = req.body;
+
+  try {
+    await db.query(
+      `INSERT INTO Signatures 
+       (treaty_title, country_name, signed_date, signed_year, bound_date, bound_year)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [
+        treaty_title,
+        country_name,
+        signed_date,
+        signed_year,
+        bound_date,
+        bound_year
+      ]
+    );
+
+    res.sendStatus(200);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Insert failed");
+  }
+});
+
 // ---------------- START ----------------
-app.listen(5000, () => {
-  console.log("API running on port 5000");
+app.listen(5001, () => {
+  console.log("API running on port 5001");
 });

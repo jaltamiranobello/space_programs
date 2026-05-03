@@ -27,7 +27,7 @@ export default function App() {
   // ---------------- FETCH COUNTRIES ----------------
   useEffect(() => {
     const loadCountries = async () => {
-      const res = await fetch("http://localhost:5000/api/countries");
+      const res = await fetch("http://localhost:5001/api/countries");
       const json = await res.json();
       setCountries(json || []);
     };
@@ -38,7 +38,7 @@ export default function App() {
   // ---------------- FETCH TABLE ----------------
   const fetchTable = async (table) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/${table}`);
+      const res = await fetch(`http://localhost:5001/api/${table}`);
       const json = await res.json();
 
       setData((prev) => ({
@@ -78,6 +78,62 @@ export default function App() {
     );
   };
 
+  // ---------------- SIGNATURE ENTRY ----------------
+  const [newSignature, setNewSignature] = useState({
+  treaty_title: "",
+  country_name: "",
+  signed_date: "",
+  bound_date: ""
+  });
+
+  const handleSignatureChange = (e) => {
+  const { name, value } = e.target;
+  setNewSignature((prev) => ({
+    ...prev,
+    [name]: value
+  }));
+  };
+
+  const submitSignature = async () => {
+  try {
+    const payload = {
+      ...newSignature,
+      signed_year: newSignature.signed_date
+        ? newSignature.signed_date.split("-")[0]
+        : null,
+      bound_year: newSignature.bound_date
+        ? newSignature.bound_date.split("-")[0]
+        : null
+    };
+
+    const res = await fetch("http://localhost:5001/api/signatures", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) throw new Error("Failed to insert");
+
+    // refresh table if open
+    if (visible.signatures) {
+      fetchTable("signatures");
+    }
+
+    // reset form
+    setNewSignature({
+      treaty_title: "",
+      country_name: "",
+      signed_date: "",
+      bound_date: ""
+    });
+
+  } catch (err) {
+    console.error(err);
+  }
+ };
+
   const toggleAllCountries = () => {
     if (selectedCountries.length === countries.length) {
       setSelectedCountries([]);
@@ -97,14 +153,78 @@ export default function App() {
 
   // ---------------- CSV ----------------
   const downloadCSV = (table) => {
-    window.open(`http://localhost:5000/api/${table}/export`, "_blank");
+    window.open(`http://localhost:5001/api/${table}/export`, "_blank");
   };
 
   // ---------------- UI ----------------
   return (
     <div className="app-container">
       <h1 className="title">Space Database Dashboard</h1>
+      <h2>Insert Data</h2>
+      <h3>Add Signature</h3>
+      <div className="form">
 
+        <div className="form-group">
+          <label>Treaty Title: </label>
+          <select
+            name="treaty_title"
+            value={newSignature.treaty_title}
+            onChange={handleSignatureChange}
+          >
+            <option value="">Select Treaty</option>
+            {data.treaties?.map((t) => (
+              <option key={t.treaty_title} value={t.treaty_title}>
+                {t.treaty_title}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label>Country Name: </label>
+          <select
+            name="country_name"
+            value={newSignature.country_name}
+            onChange={handleSignatureChange}
+          >
+            <option value="">Select Country</option>
+            {countries.map((c) => (
+              <option key={c.country_name} value={c.country_name}>
+                {c.country_name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label>Signed Date: </label>
+          <input
+            type="date"
+            name="signed_date"
+            value={newSignature.signed_date}
+            onChange={handleSignatureChange}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Bound Date: </label>
+          <input
+            type="date"
+            name="bound_date"
+            value={newSignature.bound_date}
+            onChange={handleSignatureChange}
+          />
+        </div>
+
+        <button onClick={submitSignature}>
+          Add Signature
+        </button>
+
+      </div>
+
+      <h2>View Data:</h2>
+      <em>Users may filter tables by country name or view all cells in a table!</em><br></br><br></br>
+      <em>NOTE: Satellites & Treaties cannot be filtered by country</em><br></br><br></br>
       {/* FILTER */}
       <div className="filter-wrapper">
         <button
