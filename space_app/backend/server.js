@@ -3,11 +3,15 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const db = require("./db");
+//============
+const launchesRoutes = require("./launches");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+app.use("/api", launchesRoutes);
 
 // ---------------- FILTER HELPER ----------------
 const buildCountryFilter = (req, alias = "c") => {
@@ -201,6 +205,15 @@ app.post("/api/:table", async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+const path = require("path");
+
+// Serve React build files
+app.use(express.static(path.join(__dirname, "../frontend/build")));
+
+app.use((req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/build/index.html"));
 });
 
 // ---------------- START ----------------
