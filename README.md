@@ -48,7 +48,7 @@ This uses MySQL for the database to store information on space programs. This wa
   - `signed_date`, `signed_year`
   - `bound_date`, `bound_year`
  
-## 🧱 Set Up the Database
+## Set Up the Database
 ```bash
 mysql -u root -p -e "CREATE DATABASE space_programs;"
 ```
