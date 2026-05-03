@@ -61,7 +61,7 @@ export default function LaunchForm() {
   };
 
   return (
-    <div style={{ background: "red", padding: "20px"}}>
+    <div style={{ background: "white", padding: "10px"}}>
       <h2>Insert Launch</h2>
 
       {/* PROGRAM */}
