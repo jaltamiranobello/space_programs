@@ -59,6 +59,23 @@ app.get("/api/programs", async (req, res) => {
   }
 });
 
+// Country and program 
+app.get("/api/countries-programs", async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT p.*
+      FROM Countries c
+      JOIN Programs p ON c.country_name = p.country_name
+      WHERE c.has_program = TRUE
+    `);
+
+    res.json(rows);
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ---------------- LAUNCHES ----------------
 app.get("/api/launches", async (req, res) => {
   try {
@@ -128,42 +145,137 @@ app.get("/api/launches/export", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-// ---------------- SATELLITES ----------------
-
-app.get("/api/satellites/export", async (req, res) => {
+// ---------------- INSERT TREATY ----------------
+app.post("/api/treaties", async (req, res) => {
   try {
-    const [rows] = await db.query("SELECT * FROM Satellites");
+    let {
+      treaty_title,
+      treaty_abbreviation,
+      date_created,
+      year_created
+    } = req.body;
 
-    let csv = "satellite_id,serial_number,currently_in_orbit,year_made\n";
+    // REQUIRED FIELD
+    if (!treaty_title || treaty_title.trim() === "") {
+      return res.status(400).json({
+        error: "Treaty title is required."
+      });
+    }
 
-    rows.forEach(r => {
-      csv += `${r.satellite_id},${r.serial_number},${r.currently_in_orbit},${r.year_made}\n`;
+    // HANDLE N/A
+    treaty_abbreviation =
+      treaty_abbreviation === "N/A" || treaty_abbreviation === ""
+        ? null
+        : treaty_abbreviation;
+
+    date_created =
+      date_created === "N/A" || date_created === ""
+        ? null
+        : date_created;
+
+    year_created =
+      year_created === "N/A" || year_created === ""
+        ? null
+        : year_created;
+
+    const sql = `
+      INSERT INTO Treaties
+      (
+        treaty_title,
+        treaty_abbreviation,
+        date_created,
+        year_created
+      )
+      VALUES (?, ?, ?, ?)
+    `;
+
+    await db.query(sql, [
+      treaty_title,
+      treaty_abbreviation,
+      date_created,
+      year_created
+    ]);
+
+    res.json({
+      success: true,
+      message: "Treaty inserted successfully."
     });
 
-    res.header("Content-Type", "text/csv");
-    res.attachment("satellites.csv");
-    res.send(csv);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+
+    // DUPLICATE KEY
+    if (err.code === "ER_DUP_ENTRY") {
+      return res.status(400).json({
+        error: "Treaty already exists or abbreviation must be unique."
+      });
+    }
+
+    res.status(500).json({
+      error: "Failed to insert treaty."
+    });
   }
 });
 
-app.get("/api/satellites", async (req, res) => {
+// ---------------- INSERT SATELLITE ----------------
+app.post("/api/satellites", async (req, res) => {
   try {
-    const [rows] = await db.query("SELECT * FROM Satellites");
-    res.json(rows);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+    let {
+      serial_number,
+      currently_in_orbit,
+      year_made
+    } = req.body;
 
-// ---------------- TREATIES ----------------
-app.get("/api/treaties", async (req, res) => {
-  try {
-    const [rows] = await db.query("SELECT * FROM Treaties");
-    res.json(rows);
+    serial_number =
+      serial_number === "N/A" || serial_number === ""
+        ? null
+        : serial_number;
+
+    year_made =
+      year_made === "N/A" || year_made === ""
+        ? null
+        : year_made;
+
+    // convert string to boolean
+    if (currently_in_orbit === "true") {
+      currently_in_orbit = true;
+    } else if (currently_in_orbit === "false") {
+      currently_in_orbit = false;
+    } else {
+      currently_in_orbit = null;
+    }
+
+    const sql = `
+      INSERT INTO Satellites
+      (
+        serial_number,
+        currently_in_orbit,
+        year_made
+      )
+      VALUES (?, ?, ?)
+    `;
+
+    await db.query(sql, [
+      serial_number,
+      currently_in_orbit,
+      year_made
+    ]);
+
+    res.json({
+      success: true,
+      message: "Satellite inserted successfully."
+    });
+
   } catch (err) {
-    res.status(500).json({ error: err.message });
+
+    if (err.code === "ER_DUP_ENTRY") {
+      return res.status(400).json({
+        error: "Serial number must be unique."
+      });
+    }
+
+    res.status(500).json({
+      error: "Failed to insert satellite."
+    });
   }
 });
 
@@ -203,7 +315,8 @@ app.post("/api/:table", async (req, res) => {
   }
 });
 
+
 // ---------------- START ----------------
-app.listen(5000, () => {
-  console.log("API running on port 5000");
+app.listen(5001, () => {
+  console.log("API running on port 5001");
 });
