@@ -6,7 +6,7 @@ VALUES
 ('Artemis Accords');
 
 -- Seeder data for Signatures
-INSERT INTO Signatures(treaty_id, country_name, bound_date, bound_year)
+INSERT INTO Signatures(treaty_title, country_name, bound_date, bound_year)
 VALUES
 ('Outer Space Treaty', 'Algeria', '1992-01-27', 1992),
 ('Outer Space Treaty', 'China', '1983-12-30', 1983),
@@ -16,4 +16,7 @@ VALUES
 SELECT country_name FROM Signatures WHERE treaty_title = 'Moon Treaty';
 
 -- Treaty signed by given country
-SELECT treaty_title FROM Treaties WHERE country_name = 'China';
+SELECT t.treaty_title 
+FROM Treaties t 
+JOIN Signatures s ON t.treaty_title = s.treaty_title
+WHERE country_name = 'China';
