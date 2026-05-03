@@ -1,3 +1,8 @@
+DELETE FROM Signatures;
+DELETE FROM Treaties;
+DELETE FROM Countries;
+
+
 INSERT INTO Countries (country_name, country_code, has_program)
 VALUES
 ('Algeria','DZA', 1),
