@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Space DB — Insert Records</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Insert Records</h1>
+
+  <div>
+    <button onclick="switchTab('countries')">Countries</button>
+    <button onclick="switchTab('programs')">Programs</button>
+  </div>
+
+  <hr />
+
+  <!-- ================= COUNTRIES ================= -->
+  <div id="tab-countries">
+    <h2>Insert Country</h2>
+    <p>Fields marked * are required. Leave optional fields blank or enter N/A.</p>
+
+    <form onsubmit="return false">
+      <p>
+        <label for="c-name">Country Name *</label><br />
+        <input type="text" id="c-name" maxlength="60" />
+      </p>
+
+      <p>
+        <label for="c-code">Country Code (optional, max 4 chars)</label><br />
+        <input type="text" id="c-code" maxlength="4" />
+      </p>
+
+      <p>
+        <label>Has Space Program (optional)</label><br />
+        <label><input type="radio" name="has_program" value="1" /> Yes</label>
+        <label><input type="radio" name="has_program" value="0" /> No</label>
+        <label><input type="radio" name="has_program" value="" checked /> N/A</label>
+      </p>
+
+      <p>
+        <button onclick="submitCountry()">Insert Country</button>
+      </p>
+    </form>
+
+    <div id="c-msg"></div>
+  </div>
+
+  <!-- ================= PROGRAMS ================= -->
+  <div id="tab-programs" style="display:none">
+    <h2>Insert Program</h2>
+    <p>Fields marked * are required. Leave optional fields blank or enter N/A.</p>
+
+    <form onsubmit="return false">
+      <p>
+        <label for="p-name">Program Name *</label><br />
+        <input type="text" id="p-name" maxlength="255" />
+      </p>
+
+      <p>
+        <label for="p-country">Country * (must exist in Countries table)</label><br />
+        <select id="p-country">
+          <option value="">— loading countries —</option>
+        </select>
+      </p>
+
+      <p>
+        <label for="p-type">Program Type (optional)</label><br />
+        <input type="text" id="p-type" maxlength="50" />
+      </p>
+
+      <p>
+        <label for="p-abbr">Abbreviation (optional, max 10 chars, must be unique)</label><br />
+        <input type="text" id="p-abbr" maxlength="10" />
+      </p>
+
+      <p>
+        <label for="p-date">Date Established (optional)</label><br />
+        <input type="date" id="p-date" />
+      </p>
+
+      <p>
+        <label for="p-year">Year Established (optional — auto-fills from date if blank)</label><br />
+        <input type="number" id="p-year" min="1900" max="2099" />
+      </p>
+
+      <p>
+        <label for="p-sats">Number of Satellites (optional)</label><br />
+        <input type="number" id="p-sats" min="0" />
+      </p>
+
+      <p>
+        <label for="p-astro">Number of Astronauts (optional)</label><br />
+        <input type="number" id="p-astro" min="0" />
+      </p>
+
+      <p>
+        <button onclick="submitProgram()">Insert Program</button>
+      </p>
+    </form>
+
+    <div id="p-msg"></div>
+  </div>
+
+  <script>
+    const API = 'http://localhost:5001';
+
+    function switchTab(name) {
+      document.getElementById('tab-countries').style.display = name === 'countries' ? '' : 'none';
+      document.getElementById('tab-programs').style.display  = name === 'programs'  ? '' : 'none';
+    }
+
+    function clean(val) {
+      const s = String(val ?? '').trim();
+      return (s === '' || s.toLowerCase() === 'n/a') ? null : s;
+    }
+
+    function cleanInt(val) {
+      const s = clean(val);
+      if (s === null) return null;
+      const n = parseInt(s, 10);
+      return isNaN(n) ? null : n;
+    }
+
+    function showMsg(prefix, type, text) {
+      const el = document.getElementById(`${prefix}-msg`);
+      el.textContent = (type === 'success' ? '✓ ' : '✗ ') + text;
+      el.style.color = type === 'success' ? 'green' : 'red';
+    }
+
+    async function postRecord(table, payload) {
+      const body = Object.fromEntries(
+        Object.entries(payload).filter(([, v]) => v !== null && v !== undefined)
+      );
+      const res = await fetch(`${API}/api/${table}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || json.error) throw new Error(json.error || `HTTP ${res.status}`);
+      return json;
+    }
+
+    function friendlyError(msg) {
+      if (/duplicate entry.*primary/i.test(msg)) return 'That record already exists — the primary key must be unique.';
+      if (/duplicate entry/i.test(msg))          return 'A unique constraint was violated — a similar entry already exists.';
+      if (/foreign key constraint/i.test(msg))   return 'The selected country does not exist in the database.';
+      if (/data too long/i.test(msg))            return 'One of your entries is too long for that field.';
+      if (/incorrect.*value/i.test(msg))         return 'One of the values has an incorrect format (check dates or years).';
+      return msg;
+    }
+
+    async function submitCountry() {
+      const name = clean(document.getElementById('c-name').value);
+      if (!name) { showMsg('c', 'error', 'Country Name is required.'); return; }
+
+      const hasProg = document.querySelector('input[name="has_program"]:checked')?.value;
+      const payload = {
+        country_name: name,
+        country_code: clean(document.getElementById('c-code').value),
+        has_program:  hasProg === '' ? null : hasProg === '1' ? 1 : 0
+      };
+
+      try {
+        await postRecord('Countries', payload);
+        showMsg('c', 'success', `"${name}" was added to the Countries table.`);
+        document.getElementById('c-name').value = '';
+        document.getElementById('c-code').value = '';
+        document.querySelector('input[name="has_program"][value=""]').checked = true;
+        loadCountryDropdown();
+      } catch (err) {
+        showMsg('c', 'error', friendlyError(err.message));
+      }
+    }
+
+    async function loadCountryDropdown() {
+      try {
+        const res  = await fetch(`${API}/api/countries`);
+        const rows = await res.json();
+        const sel  = document.getElementById('p-country');
+        sel.innerHTML = '<option value="">— select a country —</option>';
+        rows.forEach(r => {
+          const opt = document.createElement('option');
+          opt.value = r.country_name;
+          opt.textContent = r.country_name;
+          sel.appendChild(opt);
+        });
+      } catch {
+        document.getElementById('p-country').innerHTML =
+          '<option value="">Could not load countries</option>';
+      }
+    }
+
+    async function submitProgram() {
+      const pname   = clean(document.getElementById('p-name').value);
+      const country = clean(document.getElementById('p-country').value);
+      if (!pname)   { showMsg('p', 'error', 'Program Name is required.'); return; }
+      if (!country) { showMsg('p', 'error', 'Please select a Country.'); return; }
+
+      const dateVal = clean(document.getElementById('p-date').value);
+      let   yearVal = cleanInt(document.getElementById('p-year').value);
+      if (!yearVal && dateVal) yearVal = new Date(dateVal).getFullYear();
+
+      const payload = {
+        program_name:         pname,
+        country_name:         country,
+        program_type:         clean(document.getElementById('p-type').value),
+        program_abbreviation: clean(document.getElementById('p-abbr').value),
+        date_established:     dateVal,
+        year_established:     yearVal,
+        num_of_satellites:    cleanInt(document.getElementById('p-sats').value),
+        num_of_astronauts:    cleanInt(document.getElementById('p-astro').value),
+      };
+
+      try {
+        await postRecord('Programs', payload);
+        showMsg('p', 'success', `"${pname}" was added to the Programs table.`);
+        ['p-name','p-type','p-abbr','p-date','p-year','p-sats','p-astro'].forEach(id => {
+          document.getElementById(id).value = '';
+        });
+        document.getElementById('p-country').value = '';
+      } catch (err) {
+        showMsg('p', 'error', friendlyError(err.message));
+      }
+    }
+
+    loadCountryDropdown();
+  </script>
+
+</body>
+</html>
