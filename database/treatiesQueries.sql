@@ -1,3 +1,8 @@
+INSERT INTO Countries (country_name, country_code, has_program)
+VALUES
+('Algeria','DZA', 1),
+('China', 'CHN', 1),
+('United States of America', 'USA', 1);
 
 -- Seeder data for Treaties
 INSERT INTO Treaties(treaty_title)
