@@ -95,3 +95,4 @@ CREATE TABLE  IF NOT EXISTS Signatures(
   CONSTRAINT fk_treaty FOREIGN KEY (treaty_title) REFERENCES Treaties(treaty_title),
   CONSTRAINT fk_country FOREIGN KEY (country_name) REFERENCES Countries(country_name)
 );
+

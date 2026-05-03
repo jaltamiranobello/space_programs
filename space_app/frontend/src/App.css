@@ -1,69 +1,372 @@
-.app-container {
-  padding: 20px;
-  font-family: Arial, sans-serif;
+/* -------- RESET -------- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-.title {
-  margin-bottom: 20px;
+body {
+  background-color: #f5f7fb;
+  color: #222;
 }
 
-/* FILTER */
-.filter-wrapper {
-  position: relative;
-  margin-bottom: 20px;
+/* -------- NAVBAR -------- */
+.navbar {
+  background: white;
+  color: black;
+  padding: 1rem 2rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  border-radius: 8px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.filter-button {
-  padding: 8px 12px;
+/* -------- LAYOUT -------- */
+.container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: auto;
+}
+
+/* -------- FILTER PANEL -------- */
+.filter {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.filter h3 {
+  margin-bottom: 0.5rem;
+}
+
+.filter label {
+  display: block;
+  margin: 0.3rem 0;
   cursor: pointer;
 }
 
+/* -------- FILTER BAR -------- */
+.filter-bar {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  padding: 1rem 0 1rem 0.5rem;
+  background-color: white;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+/* filter dropdown container */
+.filter-item {
+  position: relative;
+}
+
+/* clickable filter label */
+.filter-label {
+  cursor: pointer;
+  font-weight: 500;
+  color: #000;
+  user-select: none;
+  padding: 0.4rem;
+  border-radius: 0.5rem;
+}
+
+.filter-label:hover {
+  background-color: #f3f2f2;
+}
+
+/* dropdown */
 .dropdown {
   position: absolute;
+  top: 130%;
+  left: 0;
   background: white;
-  border: 1px solid #ccc;
-  padding: 10px;
-  z-index: 999;
-  max-height: 300px;
+  border-radius: 10px;
+  padding: 0.8rem;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  min-width: 180px;
+  max-height: 250px;
   overflow-y: auto;
-  width: 220px;
+  z-index: 100;
 }
 
-.dropdown-item {
+.dropdown label {
   display: block;
-  margin: 4px 0;
-}
-
-/* TABLE TOGGLES */
-.table-toggle {
-  display: block;
-  margin: 4px 0;
-}
-
-/* TABLE SECTION */
-.table-section {
-  margin-top: 30px;
-}
-
-.csv-button {
-  margin-bottom: 10px;
-  padding: 6px 10px;
+  margin: 0.3rem 0;
   cursor: pointer;
 }
 
-/* TABLE */
-.data-table {
-  border-collapse: collapse;
+.dropdown label:hover {
+  background: #f3f4f6;
+}
+
+/* -------- TABLE TOGGLES -------- */
+.table-toggle-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+/* toggle item */
+.toggle-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+
+  transition: background 0.2s;
+}
+
+.toggle-item:hover {
+  background: #f3f4f6;
+}
+
+/* checkbox box */
+.checkbox-box {
+  width: 16px;
+  height: 16px;
+
+  border: 2px solid #aaa;
+  border-radius: 4px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: white;
+}
+
+.toggle-item.active .checkbox-box {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+.checkmark {
+  font-size: 12px;
+  color: white;
+  line-height: 1;
+}
+
+/* -------- TABLE SECTION -------- */
+.table-section {
+  background: white;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+}
+
+.table-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #eee;
+}
+
+.table-section-header h2 {
+  font-size: 1.2rem;
+  text-transform: capitalize;
+}
+
+.table-section-header button {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.table-section-header button:hover {
+  background: #1e4ed8;
+}
+
+/* -------- TABLE -------- */
+.table-wrapper {
+  overflow-x: auto;
+}
+
+table {
   width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
 }
 
-.data-table th,
-.data-table td {
-  border: 1px solid #ccc;
-  padding: 6px;
+thead {
+  background: #eef2ff;
+}
+
+th, td {
+  padding: 0.6rem;
   text-align: left;
+  border-bottom: 1px solid #ddd;
 }
 
-.data-table th {
-  background: #f4f4f4;
+tr:hover {
+  background: #f9fafb;
 }
+
+/* empty state */
+td[colspan] {
+  text-align: center;
+  padding: 1rem;
+  color: #777;
+}
+
+/* -------- BUTTONS -------- */
+.add-button {
+  background: #7474ba;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.add-button:hover {
+  background: #06056e;
+}
+
+/* ================= MODAL OVERLAY ================= */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+/* ================= MODAL BOX ================= */
+.modal {
+  background: white;
+  width: 100%;
+  max-width: 420px;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  animation: modalFade 0.15s ease-in-out;
+}
+
+/* subtle pop-in animation */
+@keyframes modalFade {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ================= HEADERS ================= */
+.modal h2 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #111827;
+}
+
+/* ================= TABLE BUTTONS ================= */
+.table-option {
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f9fafb;
+  cursor: pointer;
+  text-align: left;
+  font-size: 0.95rem;
+  transition: all 0.15s ease;
+}
+
+.table-option:hover {
+  background: #eef2ff;
+  border-color: #6366f1;
+  transform: translateX(2px);
+}
+
+/* ================= INPUT FIELDS ================= */
+.modal input {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  outline: none;
+  font-size: 0.95rem;
+  transition: border 0.15s ease, box-shadow 0.15s ease;
+}
+
+.modal input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+/* ================= BUTTON ROW ================= */
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+/* base button style */
+.modal-actions button,
+.modal > button {
+  flex: 1;
+  padding: 0.55rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: 0.15s ease;
+}
+
+/* submit */
+.modal-actions button:first-child {
+  background: #6366f1;
+  color: white;
+}
+
+.modal-actions button:first-child:hover {
+  background: #4f46e5;
+}
+
+/* back / cancel */
+.modal-actions button:nth-child(2),
+.modal-actions button:nth-child(3) {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.modal-actions button:nth-child(2):hover,
+.modal-actions button:nth-child(3):hover {
+  background: #d1d5db;
+}
+

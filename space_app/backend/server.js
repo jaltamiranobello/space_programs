@@ -9,7 +9,17 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ---------------- FILTER HELPER ----------------
+/* ---------------- TABLE MAP ---------------- */
+const tableMap = {
+  countries: "Countries",
+  programs: "Programs",
+  treaties: "Treaties",
+  satellites: "Satellites",
+  launches: "Launches",
+  signatures: "Signatures"
+};
+
+/* ---------------- COUNTRY FILTER ---------------- */
 const buildCountryFilter = (req, alias = "c") => {
   const { country } = req.query;
 
@@ -17,14 +27,16 @@ const buildCountryFilter = (req, alias = "c") => {
   const params = [];
 
   if (country) {
-    where += ` AND ${alias}.country_name LIKE ?`;
-    params.push(`%${country}%`);
+    const countries = country.split(",");
+
+    where += ` AND ${alias}.country_name IN (${countries.map(() => "?").join(",")})`;
+    params.push(...countries);
   }
 
   return { where, params };
 };
 
-// ---------------- COUNTRIES ----------------
+/* ---------------- COUNTRIES ---------------- */
 app.get("/api/countries", async (req, res) => {
   try {
     const { where, params } = buildCountryFilter(req, "c");
@@ -40,7 +52,7 @@ app.get("/api/countries", async (req, res) => {
   }
 });
 
-// ---------------- PROGRAMS ----------------
+/* ---------------- PROGRAMS ---------------- */
 app.get("/api/programs", async (req, res) => {
   try {
     const { where, params } = buildCountryFilter(req, "c");
@@ -59,7 +71,7 @@ app.get("/api/programs", async (req, res) => {
   }
 });
 
-// ---------------- LAUNCHES ----------------
+/* ---------------- LAUNCHES ---------------- */
 app.get("/api/launches", async (req, res) => {
   try {
     const { where, params } = buildCountryFilter(req, "c");
@@ -72,14 +84,11 @@ app.get("/api/launches", async (req, res) => {
           l.launch_year,
           l.return_date,
           l.return_year,
-
           s.satellite_id,
           s.serial_number,
           s.currently_in_orbit,
           s.year_made,
-
           p.country_name
-
        FROM Launches l
        JOIN Programs p ON l.program_name = p.program_name
        JOIN Countries c ON p.country_name = c.country_name
@@ -94,60 +103,7 @@ app.get("/api/launches", async (req, res) => {
   }
 });
 
-app.get("/api/launches/export", async (req, res) => {
-  try {
-    const [rows] = await db.query("SELECT * FROM Launches");
-
-    if (!rows.length) {
-      return res.status(200).send("No data");
-    }
-
-    // 🔥 AUTO-GENERATE HEADERS
-    const headers = Object.keys(rows[0]);
-
-    let csv = headers.join(",") + "\n";
-
-    // 🔥 AUTO-GENERATE ROWS
-    rows.forEach(row => {
-      const values = headers.map(h => {
-        const val = row[h];
-
-        // handle nulls + escaping commas
-        if (val === null || val === undefined) return "";
-        return `"${String(val).replace(/"/g, '""')}"`;
-      });
-
-      csv += values.join(",") + "\n";
-    });
-
-    res.header("Content-Type", "text/csv");
-    res.attachment("launches.csv");
-    res.send(csv);
-
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-// ---------------- SATELLITES ----------------
-
-app.get("/api/satellites/export", async (req, res) => {
-  try {
-    const [rows] = await db.query("SELECT * FROM Satellites");
-
-    let csv = "satellite_id,serial_number,currently_in_orbit,year_made\n";
-
-    rows.forEach(r => {
-      csv += `${r.satellite_id},${r.serial_number},${r.currently_in_orbit},${r.year_made}\n`;
-    });
-
-    res.header("Content-Type", "text/csv");
-    res.attachment("satellites.csv");
-    res.send(csv);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
+/* ---------------- SATELLITES ---------------- */
 app.get("/api/satellites", async (req, res) => {
   try {
     const [rows] = await db.query("SELECT * FROM Satellites");
@@ -157,7 +113,7 @@ app.get("/api/satellites", async (req, res) => {
   }
 });
 
-// ---------------- TREATIES ----------------
+/* ---------------- TREATIES ---------------- */
 app.get("/api/treaties", async (req, res) => {
   try {
     const [rows] = await db.query("SELECT * FROM Treaties");
@@ -167,12 +123,18 @@ app.get("/api/treaties", async (req, res) => {
   }
 });
 
-// ---------------- SIGNATURES ----------------
+/* ---------------- SIGNATURES ---------------- */
 app.get("/api/signatures", async (req, res) => {
   try {
     const { where, params } = buildCountryFilter(req, "c");
 
-    const [rows] = await db.query("SELECT * FROM Signatures");
+    const [rows] = await db.query(
+      `SELECT s.*
+       FROM Signatures s
+       JOIN Countries c ON s.country_name = c.country_name
+       ${where}`,
+      params
+    );
 
     res.json(rows);
   } catch (err) {
@@ -180,18 +142,28 @@ app.get("/api/signatures", async (req, res) => {
   }
 });
 
-// ---------------- GENERIC INSERT ----------------
+/* ---------------- GENERIC POST (ADD DATA) ---------------- */
 app.post("/api/:table", async (req, res) => {
   try {
-    const table = req.params.table;
+    const apiTable = req.params.table.toLowerCase();
+    const table = tableMap[apiTable];
+
+    if (!table) {
+      return res.status(400).json({ error: "Invalid table" });
+    }
+
     const data = req.body;
+
+    if (!data || Object.keys(data).length === 0) {
+      return res.status(400).json({ error: "No data provided" });
+    }
 
     const keys = Object.keys(data);
     const values = Object.values(data);
 
     const sql = `
-      INSERT INTO ${table}
-      (${keys.join(",")})
+      INSERT INTO \`${table}\`
+      (${keys.map(k => `\`${k}\``).join(",")})
       VALUES (${keys.map(() => "?").join(",")})
     `;
 
@@ -199,11 +171,90 @@ app.post("/api/:table", async (req, res) => {
 
     res.json({ success: true });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
 });
 
-// ---------------- START ----------------
+/* ---------------- SCHEMA ---------------- */
+app.get("/api/:table/schema", async (req, res) => {
+  const apiTable = req.params.table.toLowerCase();
+  const table = tableMap[apiTable];
+
+  if (!table) {
+    return res.status(400).json({ error: "Invalid table" });
+  }
+
+  try {
+    const [rows] = await db.query(
+      `
+      SELECT 
+        COLUMN_NAME as column_name,
+        DATA_TYPE as data_type,
+        EXTRA as extra
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = ?
+      ORDER BY ORDINAL_POSITION
+      `,
+      [table]
+    );
+
+    res.json(rows.filter(col => col.extra !== "auto_increment"));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+app.get('/api/:table/export', async (req, res) => {
+  try {
+    const apiTable = req.params.table.toLowerCase();
+    const table = tableMap[apiTable];
+
+  if (!table) {
+    return res.status(400).json({ error: "Invalid table" });
+  }
+
+    // Fetch data
+    const [rows] = await db.query(`SELECT * FROM \`${table}\``);
+
+    if (!rows.length) {
+      return res.status(404).json({ error: 'No data found' });
+    }
+
+    // Get column names from first row
+    const columns = Object.keys(rows[0]);
+
+    // Build CSV
+    let csv = columns.join(',') + '\n';
+
+    rows.forEach(row => {
+      const values = columns.map(col => {
+        let val = row[col];
+
+        // Handle null/undefined and commas
+        if (val === null || val === undefined) return '';
+        return `"${String(val).replace(/"/g, '""')}"`;
+      });
+
+      csv += values.join(',') + '\n';
+    });
+
+    // Dynamic filename
+    const filename = `${table}.csv`;
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
+    res.send(csv);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ---------------- START ---------------- */
 app.listen(5000, () => {
   console.log("API running on port 5000");
 });
