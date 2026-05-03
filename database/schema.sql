@@ -54,13 +54,7 @@ CREATE TABLE  IF NOT EXISTS Programs(
   CONSTRAINT uc_programs_abb UNIQUE(program_abbreviation)
 );
 
-CREATE TABLE  IF NOT EXISTS Treaties(
-  treaty_title VARCHAR(255) PRIMARY KEY,
-  treaty_abbreviation VARCHAR(10),
-  date_created DATE,
-  year_created YEAR,
-  CONSTRAINT uc_treaties_abb UNIQUE(treaty_abbreviation)
-);
+
 
 CREATE TABLE  IF NOT EXISTS Satellites(
   satellite_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -82,6 +76,14 @@ CREATE TABLE  IF NOT EXISTS Launches(
   CONSTRAINT pk_launch PRIMARY KEY (program_name, satellite_id),
   CONSTRAINT fk_launches_program FOREIGN KEY (program_name) REFERENCES Programs(program_name),
   CONSTRAINT fk_launches_satellite FOREIGN KEY (satellite_id) REFERENCES Satellites(satellite_id)
+);
+
+CREATE TABLE  IF NOT EXISTS Treaties(
+  treaty_title VARCHAR(255) PRIMARY KEY,
+  treaty_abbreviation VARCHAR(10),
+  date_created DATE,
+  year_created YEAR,
+  CONSTRAINT uc_treaties_abb UNIQUE(treaty_abbreviation)
 );
 
 CREATE TABLE  IF NOT EXISTS Signatures(

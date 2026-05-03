@@ -14,21 +14,23 @@ export default function LaunchForm() {
     return_year: ""
   });
 
-  // load dropdowns
+  // LOAD DROPDOWNS
   useEffect(() => {
     fetch("/api/program-options")
       .then(res => res.json())
-      .then(data => setPrograms(data));
+      .then(setPrograms);
 
     fetch("/api/satellite-options")
       .then(res => res.json())
-      .then(data => setSatellites(data));
+      .then(setSatellites);
   }, []);
 
+  // HANDLE INPUTS
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  // SUBMIT FORM
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -41,18 +43,29 @@ export default function LaunchForm() {
     const data = await res.json();
 
     if (data.success) {
-      alert("Launch inserted!");
+      alert("Launch inserted successfully!");
+
+      // reset form
+      setForm({
+        program_name: "",
+        satellite_id: "",
+        launch_location: "",
+        launch_date: "",
+        launch_year: "",
+        return_date: "",
+        return_year: ""
+      });
     } else {
-      alert("Error inserting launch");
+      alert("Insert failed");
     }
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <div style={{ background: "red", padding: "20px"}}>
       <h2>Insert Launch</h2>
 
-      {/* Program dropdown */}
-      <select name="program_name" onChange={handleChange} required>
+      {/* PROGRAM */}
+      <select name="program_name" onChange={handleChange} value={form.program_name}>
         <option value="">Select Program</option>
         {programs.map((p, i) => (
           <option key={i} value={p.program_name}>
@@ -61,8 +74,8 @@ export default function LaunchForm() {
         ))}
       </select>
 
-      {/* Satellite dropdown */}
-      <select name="satellite_id" onChange={handleChange} required>
+      {/* SATELLITE */}
+      <select name="satellite_id" onChange={handleChange} value={form.satellite_id}>
         <option value="">Select Satellite</option>
         {satellites.map((s, i) => (
           <option key={i} value={s.satellite_id}>
@@ -71,13 +84,14 @@ export default function LaunchForm() {
         ))}
       </select>
 
-      <input name="launch_location" placeholder="Location" onChange={handleChange} />
+      {/* INPUTS */}
+      <input name="launch_location" placeholder="Launch Location" onChange={handleChange} />
       <input type="date" name="launch_date" onChange={handleChange} />
       <input type="number" name="launch_year" placeholder="Launch Year" onChange={handleChange} />
       <input type="date" name="return_date" onChange={handleChange} />
       <input type="number" name="return_year" placeholder="Return Year" onChange={handleChange} />
 
-      <button type="submit">Insert Launch</button>
-    </form>
+      <button onClick={handleSubmit}>Submit Launch</button>
+    </div>
   );
 }

@@ -105,6 +105,8 @@ export default function App() {
   return (
     <div className="app-container">
       <h1 className="title">Space Database Dashboard</h1>
+      
+      <LaunchForm />
 
       {/* FILTER */}
       <div className="filter-wrapper">
