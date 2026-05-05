@@ -87,3 +87,6 @@ npm start
 
 ### 7. Open Website
 - open http://localhost:3000/ to view the site!
+
+### NOTE
+- the site runs the backend on port 5001 this works on mac if on windows use port 5000
