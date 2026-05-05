@@ -28,14 +28,14 @@ export default function App() {
 
   /* ---------------- COUNTRIES ---------------- */
   useEffect(() => {
-    fetch("http://localhost:5000/api/countries")
+    fetch("http://localhost:5001/api/countries")
       .then(res => res.json())
       .then(setCountries);
   }, []);
 
   /* ---------------- FETCH TABLE ---------------- */
   const fetchTable = async (table) => {
-    let url = `http://localhost:5000/api/${table}`;
+    let url = `http://localhost:5001/api/${table}`;
 
     if (selectedCountries.length) {
       url += `?country=${selectedCountries.join(",")}`;
@@ -80,7 +80,7 @@ export default function App() {
 
   /* ---------------- CSV ---------------- */
   const downloadCSV = (table) => {
-    window.open(`http://localhost:5000/api/${table}/export`);
+    window.open(`http://localhost:5001/api/${table}/export`);
   };
 
   return (

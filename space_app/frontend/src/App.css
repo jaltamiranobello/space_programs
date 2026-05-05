@@ -370,3 +370,13 @@ td[colspan] {
   background: #d1d5db;
 }
 
+.form-field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+}
+
+.form-field label {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
